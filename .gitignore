@@ -1,0 +1,10 @@
+.DS_Store
+.idea
+.gradle
+build/
+target/
+!gradle/wrapper/gradle-wrapper.jar
+
+www/index.html
+www/error.html
+/dmseer-infra.iml
