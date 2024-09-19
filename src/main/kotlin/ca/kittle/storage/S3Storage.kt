@@ -5,28 +5,28 @@ import ca.kittle.envTags
 import com.pulumi.aws.s3.kotlin.*
 
 
-suspend fun staticWebsite(env: Stack): Bucket =
+suspend fun buildWebsiteBucket(env: Stack): Bucket =
     bucket("${env.name.lowercase()}-qnd-website") {
         args {
             website {
                 indexDocument("index.html")
                 errorDocument("error.html")
                 routingRules("""
-[{
-    "Condition": {
-        "KeyPrefixEquals": "/storyline"
-    },
-    "Redirect": {
-        "ReplaceKeyPrefixWith": "index.html"
-    }
-}]
+                    [{
+                        "Condition": {
+                            "KeyPrefixEquals": "/storyline"
+                        },
+                        "Redirect": {
+                            "ReplaceKeyPrefixWith": "index.html"
+                        }
+                    }]
                 """)
             }
             tags(envTags(env, "static-website-bucket"))
         }
     }
 
-suspend fun secureStaticWebsite(env: Stack, source: Bucket) {
+suspend fun secureWebsite(env: Stack, source: Bucket) {
     val sourceId = source.id.applyValue(fun(id: String): String { return id })
 
     val ownerControls = bucketOwnershipControls("${env.name.lowercase()}-qnd-website-ownership-controls") {
@@ -45,7 +45,7 @@ suspend fun secureStaticWebsite(env: Stack, source: Bucket) {
         }
     }
 
-    val publicAccessControl = bucketAclV2("${env.name.lowercase()}-qnd-website-public-access-block") {
+    val publicAccessControl = bucketAclV2("${env.name.lowercase()}-qnd-website-bucket-acl") {
         args {
             bucket(sourceId)
             acl("public-read")

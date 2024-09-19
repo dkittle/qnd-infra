@@ -8,11 +8,11 @@ import com.pulumi.aws.cloudfront.kotlin.distribution
 import com.pulumi.aws.s3.kotlin.Bucket
 
 
-suspend fun staticWebsiteCdn(env: Stack, bucket: Bucket, cert: Certificate): Distribution {
+suspend fun buildCdnForWebsite(env: Stack, bucket: Bucket, cert: Certificate): Distribution {
     val certificateArn = cert.arn.applyValue(fun(arn: String): String { return arn })
     val bucketArn = bucket.arn.applyValue(fun(arn: String): String { return arn })
     val bucketWebsite = bucket.websiteEndpoint.applyValue(fun(website: String): String { return website })
-    return distribution("qnd-${env.name.lowercase()}-website-cdn") {
+    return distribution("${env.stackName}-qnd-website-cdn") {
         args {
             customErrorResponses {
                 errorCode(404)
@@ -37,7 +37,7 @@ suspend fun staticWebsiteCdn(env: Stack, bucket: Bucket, cert: Certificate): Dis
             }
             enabled(true)
             defaultRootObject("index.html")
-            aliases("dev.quillndice.com")
+            aliases("${env.subdomain()}quillndice.com")
             origins {
                 customOriginConfig {
                     httpPort(80)

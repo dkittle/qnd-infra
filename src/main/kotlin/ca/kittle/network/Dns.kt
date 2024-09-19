@@ -5,7 +5,7 @@ import com.pulumi.aws.cloudfront.kotlin.Distribution
 import com.pulumi.aws.route53.kotlin.Record
 import com.pulumi.aws.route53.kotlin.record
 
-
+// TODO Look up Zone Ids from Route53
 private fun domainNames(env: Stack): Pair<String, String> =
     when (env) {
         Stack.Dev -> Pair("dev.quillndice.com", "Z02219281O973CNEZDMPD")
@@ -14,10 +14,10 @@ private fun domainNames(env: Stack): Pair<String, String> =
     }
 
 
-suspend fun domainRecord(env: Stack, cdn: Distribution): Record {
+suspend fun createWebsiteDomainRecord(env: Stack, cdn: Distribution): Record {
     val cdnAlias = cdn.domainName.applyValue(fun(name: String): String { return name })
     val cdnZoneId = cdn.hostedZoneId.applyValue(fun(name: String): String { return name })
-    return record("${env.name.lowercase()}-qnd-domain-record") {
+    return record("${env.stackName}-qnd-domain-record") {
         args {
             zoneId(domainNames(env).second)
             name(domainNames(env).first)
