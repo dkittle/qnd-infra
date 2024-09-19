@@ -6,7 +6,7 @@ import com.pulumi.aws.s3.kotlin.*
 
 
 suspend fun buildWebsiteBucket(env: Stack): Bucket =
-    bucket("${env.name.lowercase()}-qnd-website") {
+    bucket("${env.stackName}-qnd-website") {
         args {
             website {
                 indexDocument("index.html")
@@ -29,13 +29,13 @@ suspend fun buildWebsiteBucket(env: Stack): Bucket =
 suspend fun secureWebsite(env: Stack, source: Bucket) {
     val sourceId = source.id.applyValue(fun(id: String): String { return id })
 
-    val ownerControls = bucketOwnershipControls("${env.name.lowercase()}-qnd-website-ownership-controls") {
+    val ownerControls = bucketOwnershipControls("${env.stackName}-qnd-website-ownership-controls") {
         args {
             bucket(sourceId)
             rule { objectOwnership("BucketOwnerPreferred") }
         }
     }
-    val publicAccessBlock = bucketPublicAccessBlock("${env.name.lowercase()}-qnd-website-public-access-block") {
+    val publicAccessBlock = bucketPublicAccessBlock("${env.stackName}-qnd-website-public-access-block") {
         args {
             bucket(sourceId)
             blockPublicAcls(false)
@@ -45,7 +45,7 @@ suspend fun secureWebsite(env: Stack, source: Bucket) {
         }
     }
 
-    val publicAccessControl = bucketAclV2("${env.name.lowercase()}-qnd-website-bucket-acl") {
+    val publicAccessControl = bucketAclV2("${env.stackName}-qnd-website-bucket-acl") {
         args {
             bucket(sourceId)
             acl("public-read")
@@ -56,7 +56,7 @@ suspend fun secureWebsite(env: Stack, source: Bucket) {
         return "{\"Version\": \"2012-10-17\", \"Statement\": [{ \"Sid\": \"PublicReadGetObject\", \"Effect\": \"Allow\", \"Principal\": \"*\", \"Action\": \"s3:GetObject\", \"Resource\": \"${arn}/*\" }]}";
     })
 
-    val bucketPolicy = bucketPolicy("${env.name.lowercase()}-qnd-website-policy") {
+    val bucketPolicy = bucketPolicy("${env.stackName}-qnd-website-policy") {
         args {
             bucket(sourceId)
             policy(bucketPolicyJson)

@@ -5,7 +5,7 @@ import ca.kittle.envTags
 import com.pulumi.aws.acm.kotlin.certificate
 
 suspend fun lookupWebsiteCertificate(env: Stack) =
-    certificate("${env.name.lowercase()}-qnd-certificate") {
+    certificate("${env.stackName}-qnd-certificate") {
         args {
             domainName("*.quillndice.com")
             keyAlgorithm("RSA_2048")
