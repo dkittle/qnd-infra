@@ -2,7 +2,6 @@ package ca.kittle.storage
 
 import ca.kittle.Stack
 import ca.kittle.envTags
-import com.pulumi.aws.acm.kotlin.Certificate
 import com.pulumi.aws.cloudfront.kotlin.Distribution
 import com.pulumi.aws.cloudfront.kotlin.distribution
 import com.pulumi.aws.s3.kotlin.Bucket
@@ -10,12 +9,10 @@ import com.pulumi.aws.s3.kotlin.Bucket
 suspend fun buildCdnForWebsite(
     env: Stack,
     bucket: Bucket,
-    cert: Certificate,
     name: String,
     domainName: String
 ): Distribution {
     val bucketArn = bucket.arn.applyValue(fun(arn: String): String = arn)
-    val certificateArn = cert.arn.applyValue(fun(arn: String): String = arn)
     val bucketWebsite = bucket.websiteEndpoint.applyValue(fun(website: String): String = website)
     return distribution("${env.stackName}-$name-cdn") {
         args {
@@ -61,8 +58,7 @@ suspend fun buildCdnForWebsite(
             }
             viewerCertificate {
                 cloudfrontDefaultCertificate(false)
-//                acmCertificateArn("arn:aws:acm:us-east-1:814245790557:certificate/c0469e32-9ebb-4fe1-8552-f0c61036756d")
-                acmCertificateArn(certificateArn)
+                acmCertificateArn("arn:aws:acm:us-east-1:814245790557:certificate/c0469e32-9ebb-4fe1-8552-f0c61036756d")
                 sslSupportMethod("sni-only")
             }
             tags(envTags(env, "$name-cdn"))

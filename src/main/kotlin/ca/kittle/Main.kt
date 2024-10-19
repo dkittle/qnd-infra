@@ -1,5 +1,6 @@
 package ca.kittle
 
+import ca.kittle.core.lookupWebsiteCertificate
 import ca.kittle.website.createWebsite
 import com.pulumi.Context
 import com.pulumi.kotlin.Pulumi
@@ -32,6 +33,7 @@ fun run(ctx: Context) {
     runBlocking {
         val env = Stack.valueOf(ctx.stackName().replaceFirstChar { it.uppercase() })
 
+        val qndCert = lookupWebsiteCertificate(env)
         val qndWebsite = createWebsite(env, "qnd-website", "quillndice.com")
         val qndContent = createWebsite(env, "qnd-content", "content.quillndice.com")
 

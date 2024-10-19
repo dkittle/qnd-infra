@@ -14,13 +14,14 @@ private fun domainNames(env: Stack): Pair<String, String> =
     }
 
 
-suspend fun createWebsiteDomainRecord(env: Stack, cdn: Distribution): Record {
+suspend fun createWebsiteDomainRecord(env: Stack, cdn: Distribution, name: String, domainName: String): Record {
     val cdnAlias = cdn.domainName.applyValue(fun(name: String): String { return name })
     val cdnZoneId = cdn.hostedZoneId.applyValue(fun(name: String): String { return name })
-    return record("${env.stackName}-qnd-domain-record") {
+    return record("${env.stackName}-$name-record") {
         args {
             zoneId(domainNames(env).second)
-            name(domainNames(env).first)
+            name("${env.subdomain()}$domainName")
+//            name(domainNames(env).first)
             aliases {
                 name(cdnAlias)
                 zoneId(cdnZoneId)
