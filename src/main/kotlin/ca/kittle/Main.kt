@@ -1,10 +1,6 @@
 package ca.kittle
 
-import ca.kittle.core.lookupWebsiteCertificate
-import ca.kittle.network.createWebsiteDomainRecord
-import ca.kittle.storage.secureWebsite
-import ca.kittle.storage.buildWebsiteBucket
-import ca.kittle.storage.buildCdnForWebsite
+import ca.kittle.website.createWebsite
 import com.pulumi.Context
 import com.pulumi.kotlin.Pulumi
 import kotlinx.coroutines.runBlocking
@@ -19,28 +15,30 @@ enum class Stack {
     Prod;
 
     val stackName: String = name.lowercase()
+
     fun subdomain(): String = if (this == Prod) "" else "$stackName."
 }
 
-fun envTags(env: Stack, resource: String): Map<String, String> = mapOf(
-    "Name" to "${env.stackName}-$resource",
-    "Env" to env.name
-)
+fun envTags(
+    env: Stack,
+    resource: String
+): Map<String, String> =
+    mapOf(
+        "Name" to "${env.stackName}-$resource",
+        "Env" to env.name
+    )
 
 fun run(ctx: Context) {
     runBlocking {
         val env = Stack.valueOf(ctx.stackName().replaceFirstChar { it.uppercase() })
 
-        val qndCert = lookupWebsiteCertificate(env)
-        val website = buildWebsiteBucket(env)
-        secureWebsite(env, website)
-        val cdn = buildCdnForWebsite(env, website, qndCert)
-        createWebsiteDomainRecord(env, cdn)
+        val qndWebsite = createWebsite(env, "qnd-website", "quillndice.com")
+        val qndContent = createWebsite(env, "qnd-content", "content.quillndice.com")
 
-        val cdnUrl = cdn.domainName.applyValue(fun(name: String): String { return name })
+        val qndWebsiteUrl = qndWebsite.domainName.applyValue(fun(name: String): String = name)
+        val qndContentUrl = qndContent.domainName.applyValue(fun(name: String): String = name)
 
-        ctx.export("cdn url", cdnUrl)
+        ctx.export("qnd website url", qndWebsiteUrl)
+        ctx.export("qnd content url", qndContentUrl)
     }
-
 }
-

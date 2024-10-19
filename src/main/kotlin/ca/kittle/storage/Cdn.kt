@@ -7,12 +7,17 @@ import com.pulumi.aws.cloudfront.kotlin.Distribution
 import com.pulumi.aws.cloudfront.kotlin.distribution
 import com.pulumi.aws.s3.kotlin.Bucket
 
-
-suspend fun buildCdnForWebsite(env: Stack, bucket: Bucket, cert: Certificate): Distribution {
-    val certificateArn = cert.arn.applyValue(fun(arn: String): String { return arn })
-    val bucketArn = bucket.arn.applyValue(fun(arn: String): String { return arn })
-    val bucketWebsite = bucket.websiteEndpoint.applyValue(fun(website: String): String { return website })
-    return distribution("${env.stackName}-qnd-website-cdn") {
+suspend fun buildCdnForWebsite(
+    env: Stack,
+    bucket: Bucket,
+    cert: Certificate,
+    name: String,
+    domainName: String
+): Distribution {
+    val bucketArn = bucket.arn.applyValue(fun(arn: String): String = arn)
+    val certificateArn = cert.arn.applyValue(fun(arn: String): String = arn)
+    val bucketWebsite = bucket.websiteEndpoint.applyValue(fun(website: String): String = website)
+    return distribution("${env.stackName}-$name-cdn") {
         args {
             customErrorResponses {
                 errorCode(404)
@@ -37,7 +42,7 @@ suspend fun buildCdnForWebsite(env: Stack, bucket: Bucket, cert: Certificate): D
             }
             enabled(true)
             defaultRootObject("index.html")
-            aliases("${env.subdomain()}quillndice.com")
+            aliases("${env.subdomain()}$domainName")
             origins {
                 customOriginConfig {
                     httpPort(80)
@@ -56,10 +61,11 @@ suspend fun buildCdnForWebsite(env: Stack, bucket: Bucket, cert: Certificate): D
             }
             viewerCertificate {
                 cloudfrontDefaultCertificate(false)
-                acmCertificateArn("arn:aws:acm:us-east-1:814245790557:certificate/c0469e32-9ebb-4fe1-8552-f0c61036756d")
+//                acmCertificateArn("arn:aws:acm:us-east-1:814245790557:certificate/c0469e32-9ebb-4fe1-8552-f0c61036756d")
+                acmCertificateArn(certificateArn)
                 sslSupportMethod("sni-only")
             }
-            tags(envTags(env, "static-website-cdn"))
+            tags(envTags(env, "$name-cdn"))
         }
     }
 }
